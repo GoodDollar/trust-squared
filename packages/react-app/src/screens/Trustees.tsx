@@ -1,122 +1,181 @@
 import TrustAccount from "@/components/TrustAccount";
-import { useGetMemberTrustees } from "@/hooks/queries/useGetMember";
+import { useGetMemberTrustees, useGetMemberTrusters } from "@/hooks/queries/useGetMember";
 import { formatFlow, getAddressLink, truncateAddress } from "@/utils";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Settings, LogOut } from "lucide-react";
 import Blockies from "react-blockies";
-import { CiLocationArrow1, CiUser } from "react-icons/ci";
 import { Link } from "react-router-dom";
-import { useAccount } from "wagmi";
-
-export const stats = {
-  score: {
-    icon: <CiUser className="h-8 w-auto" />,
-    label: "Score",
-    value: 1,
-  },
-  netFlow: {
-    icon: <CiLocationArrow1 className="h-8 w-auto" />,
-    label: "Net Flow",
-    value: 1,
-  },
-  supporters: {
-    icon: <CiUser className="h-8 w-auto" />,
-    label: "Supporters",
-    value: 1,
-  },
-
-  trustees: {
-    icon: <CiLocationArrow1 className="h-8 w-auto" />,
-    label: "Trustees",
-    value: 1,
-  },
-};
-
-export function Stat({
-  label,
-  value,
-  icon,
-}: (typeof stats)[keyof typeof stats]) {
-  return (
-    <div className="flex items-center gap-1 flex-col flex-wrap">
-      {icon}
-      <label>{label}</label>
-      <p className="text-xl font-bold text-amber-500">{value}</p>
-    </div>
-  );
-}
+import { useAccount, useDisconnect } from "wagmi";
+import { useState } from "react";
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 
 export default function History() {
   const { address } = useAccount();
-  const { data, status } = useGetMemberTrustees(address ?? "");
+  const { disconnect } = useDisconnect();
+  const { user = {}, handleLogOut } = useDynamicContext();
+  const [activeTab, setActiveTab] = useState<'trustees' | 'delegates'>('trustees');
+  const [showLogoutMenu, setShowLogoutMenu] = useState(false);
 
-  const totalTrustees = data?.data?.member?.trustees.length;
-  const totalFlow = data?.data?.member?.trustees.reduce(
-    (acc, curr) => acc + Number(curr.flowRate),
-    0
-  );
+  // Get both trustees and trusters data
+  const { data: trusteesData } = useGetMemberTrustees(address ?? "");
+  const { data: trustersData } = useGetMemberTrusters(address ?? "");
+
+  // Calculate stats based on active tab
+  const currentData = activeTab === 'trustees' ? trusteesData : trustersData;
+  const listData = activeTab === 'trustees' 
+    ? trusteesData?.data?.member?.trustees 
+    : trustersData?.data?.member?.trusters;
+
+  const totalCount = listData?.length || 0;
+  const totalFlow = listData?.reduce((acc, curr) => acc + Number(curr.flowRate), 0) || 0;
+
+  const handleLogout = async () => {
+    try {
+      disconnect();
+      await handleLogOut();
+      setShowLogoutMenu(false);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   return (
-    <div className="px-4">
-      <div className="py-2">
-        <TrustAccount address={address || ""} />
-
-        <div className="py-4 flex flex-col gap-4 items-center justify-center">
-          <div className="flex items-end gap-4">
-            <CiUser className="h-8 w-auto" />
-            <div className="font-lg ">{"Total Trustees"}</div>
-            <div className="text-xl text-[#36B82A]">{totalTrustees}</div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <CiLocationArrow1 className="h-8 w-auto" />
-            <div className="font-lg ">{"Total Outflow"}</div>
-            <div className="text-xl text-[#36B82A]">
-              {totalFlow ? formatFlow(totalFlow.toString()) : "0"}
+    <div className="min-h-screen bg-black text-white">
+      {/* Header with Profile and Settings */}
+      <div className="flex items-center justify-between px-6 pt-8 pb-6">
+        <TrustAccount 
+          address={address || ""} 
+          // @ts-ignore
+          name={user?.alias || user?.email?.split("@")[0] || ""}
+        />
+        
+        {/* Settings with Logout Dropdown */}
+        <div className="relative">
+          <button 
+            className="text-gray-400 hover:text-white"
+            onClick={() => setShowLogoutMenu(!showLogoutMenu)}
+          >
+            <Settings className="h-6 w-6" />
+          </button>
+          
+          {/* Logout Dropdown */}
+          {showLogoutMenu && (
+            <div className="absolute right-0 top-8 bg-gray-800 rounded-lg shadow-lg border border-gray-700 min-w-[150px] z-50">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left text-white hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </button>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Headers */}
-      <div className="flex justify-between py-4 font-semibold text-gray-600">
-        <div>Address</div>
-        <div>Amount Trusted</div>
+      {/* Click outside to close dropdown */}
+      {showLogoutMenu && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setShowLogoutMenu(false)}
+        />
+      )}
+
+      {/* Tab Navigation */}
+      <div className="px-6 mb-6">
+        <div className="flex bg-gray-800 rounded-full p-1">
+          <button
+            onClick={() => setActiveTab('trustees')}
+            className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
+              activeTab === 'trustees'
+                ? 'bg-green-600 text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Trustees
+          </button>
+          <button
+            onClick={() => setActiveTab('delegates')}
+            className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
+              activeTab === 'delegates'
+                ? 'bg-green-600 text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Delegates
+          </button>
+        </div>
       </div>
 
-      {/* List */}
-      <div className="space-y-4">
-        {data?.data?.member?.trustees.map((t) => 
-        {
-          const account = t.id.split("_")[1]
-          return(
-          <div key={t.id} className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Blockies
-                seed={account.toLowerCase()}
-                size={8}
-                scale={4}
-                className="rounded-full"
-              />
-              <div>
-                {/* <div className="font-medium">{trustee.name}</div> */}
-                <div className="text-sm text-gray-500">
-                  <Link
-                    to={getAddressLink(account)}
-                    className="font-medium text-lg underline flex gap-2"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {truncateAddress(account)} <ExternalLink color="black" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-            <div className="font-medium">
-              {formatFlow(t.flowRate.toString())}
-            </div>
-          </div>
-        )})}
+      {/* Stats Cards */}
+      <div className="px-6 space-y-4 mb-6">
+        <div className="bg-gray-900 rounded-lg p-4 flex justify-between items-center">
+          <span className="text-white font-medium">
+            {activeTab === 'trustees' ? 'Total Supporters' : 'Total Delegates'}
+          </span>
+          <span className="text-white text-lg font-semibold">{totalCount}</span>
+        </div>
+        
+        <div className="bg-gray-900 rounded-lg p-4 flex justify-between items-center">
+          <span className="text-white font-medium">
+            {activeTab === 'trustees' ? 'Total Inflow' : 'Total Outflow'}
+          </span>
+          <span className="text-white text-lg font-semibold">
+            $ {totalFlow ? formatFlow(totalFlow.toString()) : '0'}
+          </span>
+        </div>
       </div>
+
+      {/* Table Headers */}
+      <div className="px-6 py-3 border-b border-gray-800">
+        <div className="flex justify-between text-gray-400 text-sm font-medium">
+          <span>Name</span>
+          <span>Amount</span>
+        </div>
+      </div>
+
+      {/* List Items */}
+      <div className="px-6">
+        {!listData || listData.length === 0 ? (
+          <div className="py-12 text-center text-gray-500">
+            <p>No {activeTab === 'trustees' ? 'trustees' : 'delegates'} yet</p>
+          </div>
+        ) : (
+          <div className="space-y-0">
+            {listData.map((item) => {
+              // Handle different ID formats for trustees vs trusters
+              const account = activeTab === 'trustees' 
+                ? item.id.split("_")[1] 
+                : item.id.split("_")[0];
+              
+              return (
+                <div key={item.id} className="py-4 border-b border-gray-800 last:border-b-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Blockies
+                        seed={account.toLowerCase()}
+                        size={8}
+                        scale={5}
+                        className="rounded-full"
+                      />
+                      <div>
+                        <div className="text-white font-medium">
+                          {truncateAddress(account)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-white font-medium">
+                      $ {formatFlow(item.flowRate.toString())}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Add bottom padding to account for fixed navigation */}
+      <div className="pb-20"></div>
     </div>
   );
 }

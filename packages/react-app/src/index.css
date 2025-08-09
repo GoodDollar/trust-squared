@@ -3,14 +3,15 @@
 @tailwind utilities;
 
 #root {
-  background-color: #F1FFF3;
+  background-color: #000000ff;
+  color: #f0f0f0ff;
 }
 
 /* ... */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 0 0% 0%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
@@ -38,7 +39,7 @@
   }
 
   .dark {
-    --background: 20 14.3% 4.1%;
+    --background: 0 0% 0%;
     --foreground: 0 0% 95%;
     --card: 24 9.8% 10%;
     --card-foreground: 0 0% 95%;
