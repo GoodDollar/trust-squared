@@ -1,50 +1,89 @@
-# React + TypeScript + Vite
+🟢 Trust-Squared Installation Guide (Ubuntu/Linux)
+This guide will walk you through cloning, setting up, and running the Trust-Squared project on your local machine. It also includes troubleshooting tips for common issues we encountered during setup.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+✅ Requirements
+Make sure you have the following installed:
 
-Currently, two official plugins are available:
+Git
+VS Code or any text editor
+Node.js (v18 or later)
+Yarn v4 (Berry)
+Ubuntu 22.04+ (tested on Ubuntu 24)
+🧱 Project Structure
+This is a monorepo managed by Yarn Workspaces.
+The important packages are:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+packages/
+├── hardhat      # Smart contract backend
+├── react-app    # Main frontend
+├── subgraph     # GraphQL service (optional)
+├── verifier     # Possibly frontend or API
+📥 Clone the Repo
+cd ~/Desktop
+git clone https://github.com/amanzrx4/trust-squared
+cd trust-squared
+🔧 Set Up Node.js (with Corepack support)
+You must install Node via nvm to get corepack which is required for Yarn v4+.
 
-## Expanding the ESLint configuration
+1. Install nvm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.nvm/nvm.sh
+2. Install Node.js LTS version
+nvm install --lts
+3. Enable Corepack
+corepack enable
+corepack prepare yarn@stable --activate
+4. Verify Versions
+node -v     # should be >= 18
+yarn -v     # should show 3.x or 4.x (e.g., 4.5.1)
+📦 Install Dependencies
+Make sure you’re in the project root (trust-squared/):
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+yarn install
+This installs dependencies for all subprojects.
 
-- Configure the top-level `parserOptions` property like this:
+⚠️ Common Errors & Fixes
+❌ Error: Could not resolve "@wagmi/core"
+This is caused by a missing peer dependency used by @base-org/account.
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+✅ Fix:
+yarn add @wagmi/core
+You may have tried installing it inside the workspace (react-app) only — it needs to be available globally.
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+🚀 Start the App (Frontend)
+The main frontend is inside packages/react-app.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+To run it:
+yarn react-app:dev
+This should start Vite on:
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+http://localhost:5173
+🧪 Troubleshooting Other Peer Errors
+You might see warnings like:
+
+@dynamic-labs/wagmi-connector is missing @wagmi/core
+@celo-composer-minipay-template/react-app doesn't provide esbuild
+You can fix them by manually adding the required packages:
+
+yarn add esbuild eventemitter3
+yarn add @dynamic-labs/ethereum-core @dynamic-labs/logger
+Install only if they actually cause errors on startup.
+
+💡 Extra Notes
+If you need to rebuild native modules (like sharp, keccak, etc), try:
+
+yarn rebuild
+If you change any config in .yarnrc.yml, you may need to reinstall:
+
+rm -rf .yarn/cache
+yarn install
+🧼 Clean Setup (If Things Break)
+If you ever need to reset everything:
+
+rm -rf node_modules .yarn .yarnrc.yml yarn.lock
+corepack prepare yarn@stable --activate
+yarn install
+🙋‍♀️ Need Help?
+If anything fails or is unclear, please reach out to your teammate who ran this setup successfully — or check with the repo maintainer for updates.
+
+✅ Good luck, and happy coding!
