@@ -48,28 +48,7 @@ export default function History() {
           name={user?.alias || user?.email?.split("@")[0] || ""}
         />
         
-        {/* Settings with Logout Dropdown */}
-        <div className="relative">
-          <button 
-            className="text-gray-400 hover:text-white"
-            onClick={() => setShowLogoutMenu(!showLogoutMenu)}
-          >
-            <Settings className="h-6 w-6" />
-          </button>
-          
-          {/* Logout Dropdown */}
-          {showLogoutMenu && (
-            <div className="absolute right-0 top-8 bg-gray-800 rounded-lg shadow-lg border border-gray-700 min-w-[150px] z-50">
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left text-white hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Logout</span>
-              </button>
-            </div>
-          )}
-        </div>
+        
       </div>
 
       {/* Click outside to close dropdown */}
