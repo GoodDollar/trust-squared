@@ -1,15 +1,20 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { QueryClient } from "@tanstack/react-query";
 import App from "./App.tsx";
 
 import "./index.css";
-import WalletProvider from "./providers/dynamic.tsx"; 
+import MiniPayProvider from "./providers/minipayProvider.tsx";
+
+// Create a client
+const queryClient = new QueryClient();
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <WalletProvider>
+    <MiniPayProvider queryClient={queryClient}>
       {/* <Toaster /> */}
       <App />
-    </WalletProvider>
+    </MiniPayProvider>
   </StrictMode>
 );
 

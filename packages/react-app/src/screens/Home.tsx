@@ -3,7 +3,6 @@ import { useGetMember } from "@/hooks/queries/useGetMember";
 
 import { useBalanceStream } from "@/hooks/useBalanceStream";
 import { formatScore } from "@/utils";
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { QRCodeSVG } from "qrcode.react";
 import { useAccount, useDisconnect } from "wagmi";
 import { useVerifiedIdentities } from "@/hooks/useVerifiedIdentities";
@@ -18,15 +17,11 @@ export default function Home() {
   const { data } = useGetMember(account.address as string);
   const identities = useVerifiedIdentities(account.address);
 
-
   const balance = useBalanceStream(
     account.address,
-
     BigInt(data?.data?.member?.inFlowRate || 0) -
     BigInt(data?.data?.member?.outFlowRate || 0)
   );
-
-  const { user = {}, handleLogOut } = useDynamicContext();
 
   const supporters = data?.data?.member?.trustees?.length;
   const trustees = data?.data?.member?.trusters?.length;
@@ -34,6 +29,9 @@ export default function Home() {
   const formattedBalance = balance?.toString() + " G$";
   const trustScore = formatScore(data?.data?.member?.trustScore || "");
 
+  // Generate display name from wallet address
+  const displayName = account.address ? 
+    account.address.slice(0, 6) + "..." + account.address.slice(-4) : "";
 
   return (
     <div className="min-h-screen bg-black text-white px-4 py-6">
@@ -42,12 +40,9 @@ export default function Home() {
         {account.address && (
           <TrustAccount
             address={account.address as string}
-
-            name={user?.alias || user?.email?.split("@")[0] || ""}
+            name={displayName}
           />
         )}
-
-
       </div>
 
       {/* Click outside to close dropdown */}

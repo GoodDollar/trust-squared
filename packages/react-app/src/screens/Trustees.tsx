@@ -6,12 +6,10 @@ import Blockies from "react-blockies";
 import { Link } from "react-router-dom";
 import { useAccount, useDisconnect } from "wagmi";
 import { useState } from "react";
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 
 export default function History() {
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
-  const { user = {}, handleLogOut } = useDynamicContext();
   const [activeTab, setActiveTab] = useState<'trustees' | 'delegates'>('trustees');
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
 
@@ -28,15 +26,9 @@ export default function History() {
   const totalCount = listData?.length || 0;
   const totalFlow = listData?.reduce((acc, curr) => acc + Number(curr.flowRate), 0) || 0;
 
-  const handleLogout = async () => {
-    try {
-      disconnect();
-      await handleLogOut();
-      setShowLogoutMenu(false);
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
+  // Generate display name from wallet address
+  const displayName = address ? 
+    address.slice(0, 6) + "..." + address.slice(-4) : "";
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -44,11 +36,8 @@ export default function History() {
       <div className="flex items-center justify-between px-6 pt-8 pb-6">
         <TrustAccount 
           address={address || ""} 
-          // @ts-ignore
-          name={user?.alias || user?.email?.split("@")[0] || ""}
+          name={displayName}
         />
-        
-        
       </div>
 
       {/* Click outside to close dropdown */}

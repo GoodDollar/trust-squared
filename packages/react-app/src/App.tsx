@@ -10,17 +10,12 @@ import Login from "./screens/Login";
 import Dashborad from "./screens/Dashborad";
 import { QrScan } from "./screens/TrustAction";
 
-import {  useIsLoggedIn } from "@dynamic-labs/sdk-react-core";
-
 function App() {
-  const {isConnected} = useAccount()
-  // const { sdkHasLoaded } = useDynamicContext();
-  const isLoggedIn = useIsLoggedIn();
-  // const { isConnected, address } = useAccount();
-  // console.log({isLoggedIn}, {sdkHasLoaded}, { isConnected }, { address });
+  const { isConnected } = useAccount();
+
   return (
     <BrowserRouter>
-      {!isLoggedIn && !isConnected ? (
+      {!isConnected ? (
         <Login />
       ) : (
         <Routes>

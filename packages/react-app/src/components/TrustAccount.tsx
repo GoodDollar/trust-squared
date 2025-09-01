@@ -20,7 +20,7 @@ export default function TrustAccount({ address, name = "" }: ProfileCardProps) {
   return (
     <div className="flex items-center p-4 rounded-lg px-4">
       {/* Profile Picture */}
-      <Blockies as any
+      <Blockies
         seed={address.toLowerCase()}
         size={10}
         scale={5}

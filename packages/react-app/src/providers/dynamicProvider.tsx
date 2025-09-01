@@ -28,13 +28,23 @@ export default function DynamicProvider({
   return (
     <DynamicContextProvider
       settings={{
-        appName: "Trusted Square",
+        appName: "Trust-Squared",
         environmentId: "d9ba107d-58b4-49db-9f8b-475239b06071",
         walletConnectors: [
           AlgorandWalletConnectors,
           CosmosWalletConnectors,
           EthereumWalletConnectors,
         ],
+
+        // Customize the onboarding experience
+        eventsCallbacks: {
+          onAuthSuccess: (args) => {
+            console.log("Auth success:", args);
+          },
+          onAuthFailure: (args) => {
+            console.log("Auth failure:", args);
+          },
+        },
       }}
     >
       <WagmiProvider config={config}>

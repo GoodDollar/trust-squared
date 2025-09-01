@@ -2,13 +2,11 @@ import { Home, Users, BarChart3, Heart, Settings, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAccount, useDisconnect } from "wagmi";
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 
 export default function BottomNavbar() {
   const location = useLocation();
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
   const { disconnect } = useDisconnect();
-  const { handleLogOut } = useDynamicContext();
 
   const isActive = (route: string) => {
     if (route === "/") {
@@ -23,7 +21,6 @@ export default function BottomNavbar() {
   const handleLogout = async () => {
     try {
       disconnect();
-      await handleLogOut();
       setShowLogoutMenu(false);
     } catch (error) {
       console.error("Logout error:", error);

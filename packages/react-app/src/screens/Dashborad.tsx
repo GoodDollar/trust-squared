@@ -3,9 +3,7 @@ import { useGetMember, useGetMemberTrustees, useGetMemberTrusters } from "@/hook
 
 import { useBalanceStream } from "@/hooks/useBalanceStream";
 import { formatScore, formatFlow } from "@/utils";
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useAccount, useDisconnect } from "wagmi";
-
 
 import { useState } from "react";
 
@@ -19,15 +17,11 @@ export default function Dashboard() {
     const { data: trusteesData } = useGetMemberTrustees(account.address ?? "");
     const { data: trustersData } = useGetMemberTrusters(account.address ?? "");
 
-   
     const balance = useBalanceStream(
         account.address,
-       
         BigInt(memberData?.data?.member?.inFlowRate || 0) -
         BigInt(memberData?.data?.member?.outFlowRate || 0)
     );
-
-    const { user = {}, handleLogOut } = useDynamicContext();
 
     const supporters = trusteesData?.data?.member?.trustees?.length || 0;
     const delegates = trustersData?.data?.member?.trusters?.length || 0;
@@ -38,15 +32,9 @@ export default function Dashboard() {
     const formattedBalance = balance?.toString() || "0";
     const trustScore = formatScore(memberData?.data?.member?.trustScore || "");
 
-    // const handleLogout = async () => {
-    //     try {
-    //         disconnect();
-    //         await handleLogOut();
-    //         setShowLogoutMenu(false);
-    //     } catch (error) {
-    //         console.error("Logout error:", error);
-    //     }
-    // };
+    // Generate display name from wallet address
+    const displayName = account.address ? 
+        account.address.slice(0, 6) + "..." + account.address.slice(-4) : "";
 
     function generateChartData() {
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -68,10 +56,7 @@ export default function Dashboard() {
                     <div className="flex flex-col">
                         <TrustAccount
                             address={account.address as string}
-                           
-                          name={(user as { email?: string })?.email?.split("@")[0] || ""
-
-                            }
+                            name={displayName}
                         />
                         <div className="flex items-center gap-2 mt-1">
                             <span className="text-gray-400 text-sm">Trust Score</span>
@@ -79,27 +64,6 @@ export default function Dashboard() {
                         </div>
                     </div>
                 )}
-
-                {/* <div className="relative">
-                    <button
-                        className="text-gray-400 hover:text-white"
-                        onClick={() => setShowLogoutMenu(!showLogoutMenu)}
-                    >
-                        <Settings className="h-6 w-6" />
-                    </button>
-
-                    {showLogoutMenu && (
-                        <div className="absolute right-0 top-8 bg-gray-800 rounded-lg shadow-lg border border-gray-700 min-w-[150px] z-50">
-                            <button
-                                onClick={handleLogout}
-                                className="w-full flex items-center gap-3 px-4 py-3 text-left text-white hover:bg-gray-700 rounded-lg transition-colors"
-                            >
-                                <LogOut className="h-4 w-4" />
-                                <span>Logout</span>
-                            </button>
-                        </div>
-                    )}
-                </div> */}
             </div>
         {showLogoutMenu && (
   <button
