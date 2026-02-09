@@ -2,13 +2,14 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { useAccount } from "wagmi";
 import "./App.css";
 import BottomNavbar from "./components/BottomNavbar";
-import Navbar from "./components/Navbar";
+// import Navbar from "./components/Navbar";
 import Trustees from "./screens/Trustees";
 import Home from "./screens/Home";
 import Layout from "./screens/Layout";
 import Login from "./screens/Login";
+import Dashborad from "./screens/Dashborad";
 import { QrScan } from "./screens/TrustAction";
-import Trusters from "./screens/Trusters";
+
 import {  useIsLoggedIn } from "@dynamic-labs/sdk-react-core";
 
 function App() {
@@ -28,7 +29,7 @@ function App() {
             path="/*"
             element={
               <>
-                <Navbar />
+                {/* <Navbar /> */}
                 <Routes>
                   {/* Add your other routes here */}
                   <Route
@@ -48,10 +49,10 @@ function App() {
                     }
                   />
                   <Route
-                    path="/truster"
+                    path="/dashboard"
                     element={
                       <Layout>
-                        <Trusters />
+                    <Dashborad />
                       </Layout>
                     }
                   />

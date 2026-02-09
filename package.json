@@ -26,5 +26,8 @@
     "celo-composer",
     "celo"
   ],
-  "packageManager": "yarn@4.5.1"
+  "packageManager": "yarn@4.5.1",
+  "dependencies": {
+    "@wagmi/core": "^2.18.1"
+  }
 }

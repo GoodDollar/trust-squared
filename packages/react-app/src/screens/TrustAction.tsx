@@ -22,15 +22,16 @@ import { truncateAddress } from "@/utils";
 // @ts-expect-error
 const isMiniPay = window?.ethereum?.isMiniPay;
 const gasOpts = isMiniPay ? {} : {
-  maxFeePerGas: BigInt(5e9),
-  maxPriorityFeePerGas: BigInt(0)
-}
-      
+  maxFeePerGas: BigInt(60e9),
+  maxPriorityFeePerGas: BigInt(2e9)
+};
+
 const useGetFlowRate = (sender: string | undefined) => {
-  if (!sender) return undefined;
-  const memberData = useGetMember(sender);
+  const memberData = useGetMember(sender || "");
+  if (!sender) return 0n;
   // @ts-ignore
-  return memberData.status === "success" ? BigInt(memberData.data?.data?.outFlowRate || 0) : undefined
+  const flowRate = memberData.data?.data?.outFlowRate;
+  return flowRate ? BigInt(flowRate) : 0n;
 };
 
 export const QrScan = () => {
@@ -38,7 +39,6 @@ export const QrScan = () => {
   const account = useAccount();
 
   const existingFlowRate = useGetFlowRate(account.address);
-  console.log({ existingFlowRate });
   const { writeContractAsync } = useWriteContract();
 
   const [result, setResult] = useState<string | undefined>(undefined);
@@ -50,17 +50,15 @@ export const QrScan = () => {
   const validRecipient = isAddress(result || "");
 
   const handleScan = (result: IDetectedBarcode[]) => {
-    console.log(result);
     if (result.length > 0) {
       setResult(result[0].rawValue);
     }
   };
 
   const trust = async () => {
-    if (existingFlowRate !== undefined && result) {
+    if (result) {
       const monthlyTrustRate =
         parseEther(amount.toString()) / BigInt(60 * 60 * 24 * 30);
-      console.log("Trusting:", { existingFlowRate, result, monthlyTrustRate });
       const newFlowRate = existingFlowRate + monthlyTrustRate;
 
       const userData = encodeAbiParameters(
@@ -90,7 +88,6 @@ export const QrScan = () => {
         });
         navigation("/");
       } catch (e: any) {
-        console.log({ e })
         setLoading(false);
         toast({
           title: "Transaction failed",
