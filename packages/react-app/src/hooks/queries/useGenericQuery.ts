@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 
 export const useGenericQuery = <T>(
   queryKey: string[],
-  queryFn: () => Promise<T>
+  queryFn: () => Promise<T>,
+  enabled: boolean = true
 ) => {
   const {
     data,
@@ -12,6 +13,7 @@ export const useGenericQuery = <T>(
   } = useQuery({
     queryKey: queryKey,
     queryFn: queryFn,
+    enabled: enabled,
   });
 
   const refetch = async () => {

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-import { useWriteContract, useAccount } from "wagmi";
+import { useWriteContract, useAccount, useReadContract } from "wagmi";
 import ABI from "../abis/CFAv1Forwarder.json";
 import { GOODDOLLAR, SF_FORWARDER, POOL_CONTRACT } from "@/env";
 import {
@@ -16,21 +16,25 @@ import {
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PasteInput } from "@/components/PasteInput";
-import { useGetMember } from "@/hooks/queries/useGetMember";
 import { truncateAddress } from "@/utils";
 
 // @ts-expect-error
 const isMiniPay = window?.ethereum?.isMiniPay;
 const gasOpts = isMiniPay ? {} : {
-  maxFeePerGas: BigInt(5e9),
-  maxPriorityFeePerGas: BigInt(0)
-}
-      
+  maxFeePerGas: BigInt(25.1e9),
+  maxPriorityFeePerGas: BigInt(1e8)
+};
+
 const useGetFlowRate = (sender: string | undefined) => {
-  if (!sender) return undefined;
-  const memberData = useGetMember(sender);
-  // @ts-ignore
-  return memberData.status === "success" ? BigInt(memberData.data?.data?.outFlowRate || 0) : undefined
+  const result = useReadContract({
+    address: SF_FORWARDER,
+    abi: [{ name: "getFlowrate", type: "function", stateMutability: "view", inputs: [{ name: "token", type: "address" }, { name: "sender", type: "address" }, { name: "receiver", type: "address" }], outputs: [{ name: "", type: "int96" }] }],
+    functionName: "getFlowrate",
+    args: [GOODDOLLAR as `0x${string}`, (sender || "0x0000000000000000000000000000000000000000") as `0x${string}`, POOL_CONTRACT as `0x${string}`],
+    query: { enabled: !!sender },
+  });
+  if (!sender || !result.data) return 0n;
+  return BigInt(result.data);
 };
 
 export const QrScan = () => {
@@ -38,7 +42,6 @@ export const QrScan = () => {
   const account = useAccount();
 
   const existingFlowRate = useGetFlowRate(account.address);
-  console.log({ existingFlowRate });
   const { writeContractAsync } = useWriteContract();
 
   const [result, setResult] = useState<string | undefined>(undefined);
@@ -50,17 +53,15 @@ export const QrScan = () => {
   const validRecipient = isAddress(result || "");
 
   const handleScan = (result: IDetectedBarcode[]) => {
-    console.log(result);
     if (result.length > 0) {
       setResult(result[0].rawValue);
     }
   };
 
   const trust = async () => {
-    if (existingFlowRate !== undefined && result) {
+    if (result) {
       const monthlyTrustRate =
         parseEther(amount.toString()) / BigInt(60 * 60 * 24 * 30);
-      console.log("Trusting:", { existingFlowRate, result, monthlyTrustRate });
       const newFlowRate = existingFlowRate + monthlyTrustRate;
 
       const userData = encodeAbiParameters(
@@ -90,7 +91,6 @@ export const QrScan = () => {
         });
         navigation("/");
       } catch (e: any) {
-        console.log({ e })
         setLoading(false);
         toast({
           title: "Transaction failed",
