@@ -1,97 +1,56 @@
-import { CiHome as IconHome, CiUser as IconTrusters } from "react-icons/ci";
-import {
-  FaHandHoldingUsd as IconTrustees,
-  FaChartArea as IconHistory,
-} from "react-icons/fa";
-import { Link } from "react-router-dom";
-
-const navbarItems = {
-  home: {
-    icon: <IconHome className="w-8 h-auto bg-white rounded-sm p-1" />,
-    label: "Home",
-    route: "/",
-  },
-  profile: {
-    icon: <IconTrusters className="w-8 h-auto bg-white rounded-sm p-1" />,
-    label: "Profile",
-    route: "/profile",
-  },
-  history: {
-    icon: <IconHistory className="w-8 h-auto bg-white rounded-sm p-1" />,
-    label: "History",
-    route: "/history",
-  },
-  trustees: {
-    icon: <IconTrustees className="w-8 h-auto bg-white rounded-sm p-1" />,
-    label: "Trustees",
-    route: "/trustees",
-  },
-};
+import { Home, Compass, BarChart3, User, Plus } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 export default function BottomNavbar() {
+  const location = useLocation();
+
+  const isActive = (route: string) => {
+    if (route === "/") return location.pathname === "/";
+    return location.pathname.startsWith(route);
+  };
+
+  const navItems = [
+    { to: "/", icon: Home, label: "Home" },
+    { to: "/explore", icon: Compass, label: "Explore" },
+    { to: "/streams", icon: BarChart3, label: "Streams" },
+    { to: "/profile", icon: User, label: "Profile" },
+  ];
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 flex justify-center pb-4">
-      <div className="flex flex-col w-[440px] mx-auto gap-8 p-4 px-8 rounded-tl-3xl rounded-tr-3xl">
-        <div className="max-w-[440px] w-full flex justify-between items-center gap-2">
-          <Link
-            style={{
-              boxShadow: "0px 4px 4px 0px #00000040",
-            }}
-            to={`/truster`}
-            className={`flex bg-[#36B82A4D] justify-end rounded-xl items-center flex-grow px-2 `}
-          >
-            <div className="flex  items-center p-2">
-              <IconTrusters
-                className="w-full h-8 rounded-sm p-0"
-                color="#36B82A"
-              />
-              <span className="text-md   text-[#36B82A]">Supporters</span>
-            </div>
-          </Link>
+    <>
+      {/* FAB -- Support button */}
+      <Link
+        to="/trust"
+        className="fixed bottom-24 right-5 z-50 w-14 h-14 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center shadow-lg shadow-green-600/30 transition-colors"
+      >
+        <Plus className="h-6 w-6 text-white" />
+      </Link>
 
-          <Link
-            to={`/trust`}
-            style={{
-              boxShadow: "0px 4px 4px 0px #00000040",
-            }}
-            className="w-[90px] h-[90px] rounded-xl bg-[#36B82A4D] flex-grow flex items-center justify-center gap-1"
-          >
-            <img src={`/qrlogo.svg`} width={66} height={"auto"} alt="profile" />
-          </Link>
-
-          <Link
-            to={`/trustees`}
-            style={{
-              boxShadow: "0px 4px 4px 0px #00000040",
-            }}
-            className={`flex bg-[#36B82A4D] justify-end rounded-xl items-center flex-grow  px-2 `}
-          >
-            <div className="flex  items-center p-2 gap-1">
-              <IconTrustees
-                className="w-full h-8 rounded-sm p-0"
-                color="#AC481E"
-              />
-              <span className="text-md text-[#AC481E]">Trustees</span>
-            </div>
-            {/* <IconTrustees className="w-full h-14 rounded-sm p-1" color="#AC481E" />
-            <span className="text-xl text-[#AC481E]">$200</span> */}
-          </Link>
-
-          {/* {Object.entries(navbarItems).map(([key, item]) => (
+      {/* Bottom Nav */}
+      <div className="fixed bottom-0 left-0 right-0 bg-t2-card/95 backdrop-blur-sm border-t border-t2-border z-50">
+        <div className="flex items-center justify-around py-2 px-4 max-w-md mx-auto">
+          {navItems.map(({ to, icon: Icon, label }) => (
             <Link
-              key={key}
-              to={item.route}
-              className={`flex flex-col items-center gap-1`}
+              key={to}
+              to={to}
+              className={`flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl transition-all duration-200 ${
+                isActive(to)
+                  ? "text-green-400"
+                  : "text-gray-500 hover:text-gray-300"
+              }`}
             >
-              {item.icon}
-              <span className="text-xs">{item.label}</span>
+              <div
+                className={`p-1.5 rounded-xl transition-colors ${
+                  isActive(to) ? "bg-green-600 text-white" : ""
+                }`}
+              >
+                <Icon className="h-5 w-5" />
+              </div>
+              <span className="text-[10px] font-medium">{label}</span>
             </Link>
-          ))} */}
+          ))}
         </div>
-        {/* <Button size={"lg"} className="bg-white text-black">
-          Trust Someone
-        </Button> */}
       </div>
-    </div>
+    </>
   );
 }

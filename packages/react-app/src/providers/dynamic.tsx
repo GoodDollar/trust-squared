@@ -1,6 +1,6 @@
 import React from "react";
 import MiniPayProvider from "./minipayProvider";
-import DynamicProvider from "./dynamicProvider";
+import ReownProvider from "./reownProvider";
 import { QueryClient } from "@tanstack/react-query";
 
 export const queryClient = new QueryClient();
@@ -12,25 +12,17 @@ export default function WalletProvider({
 }) {
   const isMiniPay = () => {
     if (window && window.ethereum) {
-      // User has a injected wallet
-
-      // @ts-expect-error
+      // @ts-ignore MiniPay detection
       if (window.ethereum.isMiniPay) {
-        console.log("MiniPay detected");
         return true;
       }
     }
-    console.log("MiniPay not detected");
     return false;
   };
-
-  console.log("isMiniPay", isMiniPay());
-
-  
 
   return isMiniPay() ? (
     <MiniPayProvider queryClient={queryClient}>{children}</MiniPayProvider>
   ) : (
-    <DynamicProvider queryClient={queryClient}>{children}</DynamicProvider>
+    <ReownProvider queryClient={queryClient}>{children}</ReownProvider>
   );
 }

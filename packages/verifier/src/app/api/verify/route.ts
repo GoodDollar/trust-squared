@@ -5,14 +5,8 @@ import { NextRequest } from 'next/server'
 import ABI from "../../../../abi/TrustPool.json"
 export const dynamic = 'force-dynamic'; // static by default, unless reading the request
 
-const provider = new ethers.providers.JsonRpcProvider({
-  skipFetchSetup: true,
-  url: 'https://forno.celo.org'
-})
-const mainnet = new ethers.providers.JsonRpcProvider({
-  skipFetchSetup: true,
-  url: 'https://rpc.sepolia.org'
-})
+const provider = new ethers.providers.StaticJsonRpcProvider("https://forno.celo.org", 42220)
+const mainnet = new ethers.providers.StaticJsonRpcProvider("https://rpc.sepolia.org", 11155111)
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY as string).connect(provider)
 const poolContract = new ethers.Contract(process.env.POOL_CONTRACT as string, ABI.abi).connect(wallet)
 const identityContract = new ethers.Contract("0xC361A6E67822a0EDc17D899227dd9FC50BD62F42" as string, ["function getWhitelistedRoot(address) external view returns(address)"]).connect(provider)
@@ -28,8 +22,7 @@ export async function GET(request: NextRequest) {
   if (memberAddress) {
     const root = await identityContract.getWhitelistedRoot(memberAddress);
     isGoodID = root.toLowerCase() === memberAddress.toLowerCase()
-    const nouns = await nounsContract.balanceOf(memberAddress)
-    isNoun = Number(nouns) > 0
+    try { const nouns = await nounsContract.balanceOf(memberAddress); isNoun = Number(nouns) > 0 } catch(e: any) { console.log("nouns check failed", e.message) }
 
 
     let existing = true

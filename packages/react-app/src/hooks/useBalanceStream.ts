@@ -1,26 +1,32 @@
 import { GOODDOLLAR } from "@/env";
 import { useState, useEffect } from "react";
-import { useBalance } from "wagmi";
+import { useReadContract } from "wagmi";
+import { erc20Abi } from "viem";
 
 const ANIMATION_MINIMUM_STEP_TIME = 100;
 export const useBalanceStream = (
   account: string | undefined,
   flowRate: bigint
 ) => {
-  const gdBalance = useBalance({
-    address: account as any,
-    token: GOODDOLLAR,
-    query: { refetchInterval: 60000 },
+  const gdBalance = useReadContract({
+    address: GOODDOLLAR as `0x${string}`,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: account ? [account as `0x${string}`] : undefined,
+    query: {
+      enabled: !!account,
+      refetchInterval: 60000,
+    },
   });
 
-  const [balance, setBalance] = useState<bigint | undefined>(
-    gdBalance?.data?.value
-  );
+  const balanceValue = gdBalance.data as bigint | undefined;
+
+  const [balance, setBalance] = useState<bigint | undefined>(balanceValue);
   const [startTime, setStartTime] = useState<number>(0);
 
   useEffect(() => {
     setStartTime(Date.now());
-  }, [gdBalance.data?.value]);
+  }, [balanceValue]);
 
   useEffect(() => {
     let stopAnimation = false;
@@ -31,16 +37,13 @@ export const useBalanceStream = (
         return;
       }
       if (
-        gdBalance.data &&
+        balanceValue !== undefined &&
         currentAnimationTimestamp - lastAnimationTimestamp >
           ANIMATION_MINIMUM_STEP_TIME
       ) {
-        const currentTimestampBigNumber = BigInt(
-          new Date().valueOf() // Milliseconds elapsed since UTC epoch, disregards timezone.
-        );
         const timePassed = BigInt(Date.now() - startTime) / 1000n;
         const update = BigInt(flowRate || 0) * timePassed;
-        setBalance(gdBalance.data.value + update);
+        setBalance(balanceValue + update);
         lastAnimationTimestamp = currentAnimationTimestamp;
       }
 
@@ -52,7 +55,9 @@ export const useBalanceStream = (
     return () => {
       stopAnimation = true;
     };
-  }, [gdBalance, startTime]);
+  }, [balanceValue, startTime, flowRate]);
 
-  return balance ? (Number(balance) / 1e18).toLocaleString() : undefined;
+  return balance !== undefined
+    ? (Number(balance) / 1e18).toLocaleString()
+    : undefined;
 };

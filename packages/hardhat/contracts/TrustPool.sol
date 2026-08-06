@@ -68,6 +68,7 @@ contract TrustPool is CFASuperAppBase {
     function onFlowCreated(
         ISuperToken token,
         address sender,
+        int96 /*flowRate*/,
         bytes calldata ctx
     ) internal virtual override returns (bytes memory newCtx) {
         newCtx = ctx;
@@ -77,25 +78,23 @@ contract TrustPool is CFASuperAppBase {
     function onFlowUpdated(
         ISuperToken token,
         address sender,
-        int96 previousFlowRate,
-        uint256,
-        bytes calldata ctx
-    ) internal virtual override returns (bytes memory newCtx) {
-        newCtx = ctx;
-        // console.log("on flow updated");
-        newCtx = _updateTrust(token, sender, previousFlowRate, newCtx);
-    }
-
-    function onFlowDeleted(
-        ISuperToken token,
-        address sender,
-        address,
+        int96 /*flowRate*/,
         int96 previousFlowRate,
         uint256 /*lastUpdated*/,
         bytes calldata ctx
     ) internal virtual override returns (bytes memory newCtx) {
         newCtx = ctx;
-        // console.log("on flow deleted %s", sender);
+        newCtx = _updateTrust(token, sender, previousFlowRate, newCtx);
+    }
+
+    function onInFlowDeleted(
+        ISuperToken token,
+        address sender,
+        int96 previousFlowRate,
+        uint256 /*lastUpdated*/,
+        bytes calldata ctx
+    ) internal virtual override returns (bytes memory newCtx) {
+        newCtx = ctx;
         newCtx = _updateTrust(token, sender, previousFlowRate, newCtx);
     }
 

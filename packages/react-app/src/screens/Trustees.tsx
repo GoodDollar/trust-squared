@@ -1,122 +1,130 @@
-import TrustAccount from "@/components/TrustAccount";
-import { useGetMemberTrustees } from "@/hooks/queries/useGetMember";
-import { formatFlow, getAddressLink, truncateAddress } from "@/utils";
-import { ExternalLink } from "lucide-react";
+import { useGetMemberTrustees, useGetMemberTrusters } from "@/hooks/queries/useGetMember";
+import { formatFlow, truncateAddress } from "@/utils";
 import Blockies from "react-blockies";
-import { CiLocationArrow1, CiUser } from "react-icons/ci";
-import { Link } from "react-router-dom";
 import { useAccount } from "wagmi";
+import { useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-export const stats = {
-  score: {
-    icon: <CiUser className="h-8 w-auto" />,
-    label: "Score",
-    value: 1,
-  },
-  netFlow: {
-    icon: <CiLocationArrow1 className="h-8 w-auto" />,
-    label: "Net Flow",
-    value: 1,
-  },
-  supporters: {
-    icon: <CiUser className="h-8 w-auto" />,
-    label: "Supporters",
-    value: 1,
-  },
-
-  trustees: {
-    icon: <CiLocationArrow1 className="h-8 w-auto" />,
-    label: "Trustees",
-    value: 1,
-  },
-};
-
-export function Stat({
-  label,
-  value,
-  icon,
-}: (typeof stats)[keyof typeof stats]) {
-  return (
-    <div className="flex items-center gap-1 flex-col flex-wrap">
-      {icon}
-      <label>{label}</label>
-      <p className="text-xl font-bold text-amber-500">{value}</p>
-    </div>
-  );
-}
-
-export default function History() {
+export default function Trustees() {
   const { address } = useAccount();
-  const { data, status } = useGetMemberTrustees(address ?? "");
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'trustees' | 'trusters'>('trustees');
 
-  const totalTrustees = data?.data?.member?.trustees.length;
-  const totalFlow = data?.data?.member?.trustees.reduce(
-    (acc, curr) => acc + Number(curr.flowRate),
-    0
-  );
+  const { data: trusteesData } = useGetMemberTrustees(address ?? "");
+  const { data: trustersData } = useGetMemberTrusters(address ?? "");
+
+  const listData = activeTab === 'trustees'
+    ? trusteesData?.data?.member?.trustees
+    : trustersData?.data?.member?.trusters;
+
+  const totalCount = listData?.length || 0;
+  const totalFlow = listData?.reduce((acc, curr) => acc + Number(curr.flowRate), 0) || 0;
 
   return (
-    <div className="px-4">
-      <div className="py-2">
-        <TrustAccount address={address || ""} />
+    <div className="min-h-screen bg-t2-dark text-white">
+      {/* Header */}
+      <div className="px-5 pt-6 pb-4 flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="p-1 hover:bg-t2-card-light rounded-full">
+          <ArrowLeft className="h-5 w-5 text-white" />
+        </button>
+        <h1 className="text-white font-semibold text-lg">Trust Network</h1>
+      </div>
 
-        <div className="py-4 flex flex-col gap-4 items-center justify-center">
-          <div className="flex items-end gap-4">
-            <CiUser className="h-8 w-auto" />
-            <div className="font-lg ">{"Total Trustees"}</div>
-            <div className="text-xl text-[#36B82A]">{totalTrustees}</div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <CiLocationArrow1 className="h-8 w-auto" />
-            <div className="font-lg ">{"Total Outflow"}</div>
-            <div className="text-xl text-[#36B82A]">
-              {totalFlow ? formatFlow(totalFlow.toString()) : "0"}
-            </div>
-          </div>
+      {/* Tab Navigation */}
+      <div className="px-6 mb-6">
+        <div className="flex bg-t2-card-light rounded-full p-1">
+          <button
+            onClick={() => setActiveTab('trustees')}
+            className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
+              activeTab === 'trustees'
+                ? 'bg-green-600 text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Trustees
+          </button>
+          <button
+            onClick={() => setActiveTab('trusters')}
+            className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
+              activeTab === 'trusters'
+                ? 'bg-green-600 text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Trusters
+          </button>
         </div>
       </div>
 
-      {/* Headers */}
-      <div className="flex justify-between py-4 font-semibold text-gray-600">
-        <div>Address</div>
-        <div>Amount Trusted</div>
+      {/* Stats Cards */}
+      <div className="px-6 space-y-4 mb-6">
+        <div className="bg-t2-card border border-t2-border rounded-lg p-4 flex justify-between items-center">
+          <span className="text-white font-medium">
+            {activeTab === 'trustees' ? 'Total Supporters' : 'Total Trusters'}
+          </span>
+          <span className="text-white text-lg font-semibold">{totalCount}</span>
+        </div>
+
+        <div className="bg-t2-card border border-t2-border rounded-lg p-4 flex justify-between items-center">
+          <span className="text-white font-medium">
+            {activeTab === 'trustees' ? 'Total Inflow' : 'Total Outflow'}
+          </span>
+          <span className="text-white text-lg font-semibold">
+            {totalFlow ? formatFlow(totalFlow.toString()) : '0 G$'}
+          </span>
+        </div>
       </div>
 
-      {/* List */}
-      <div className="space-y-4">
-        {data?.data?.member?.trustees.map((t) => 
-        {
-          const account = t.id.split("_")[1]
-          return(
-          <div key={t.id} className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Blockies
-                seed={account.toLowerCase()}
-                size={8}
-                scale={4}
-                className="rounded-full"
-              />
-              <div>
-                {/* <div className="font-medium">{trustee.name}</div> */}
-                <div className="text-sm text-gray-500">
-                  <Link
-                    to={getAddressLink(account)}
-                    className="font-medium text-lg underline flex gap-2"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {truncateAddress(account)} <ExternalLink color="black" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-            <div className="font-medium">
-              {formatFlow(t.flowRate.toString())}
-            </div>
-          </div>
-        )})}
+      {/* Table Headers */}
+      <div className="px-6 py-3 border-b border-t2-border">
+        <div className="flex justify-between text-gray-400 text-sm font-medium">
+          <span>Name</span>
+          <span>Amount</span>
+        </div>
       </div>
+
+      {/* List Items */}
+      <div className="px-6">
+        {!listData || listData.length === 0 ? (
+          <div className="py-12 text-center text-gray-500">
+            <p>No {activeTab === 'trustees' ? 'trustees' : 'trusters'} yet</p>
+          </div>
+        ) : (
+          <div className="space-y-0">
+            {listData.map((item) => {
+              const addr = activeTab === 'trustees'
+                ? item.id.split("_")[1]
+                : item.id.split("_")[0];
+
+              return (
+                <div key={item.id} className="py-4 border-b border-t2-border last:border-b-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Blockies
+                        seed={addr.toLowerCase()}
+                        size={8}
+                        scale={5}
+                        className="rounded-full"
+                      />
+                      <div>
+                        <div className="text-white font-medium">
+                          {truncateAddress(addr)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-white font-medium">
+                      {formatFlow(item.flowRate.toString())}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="pb-20"></div>
     </div>
   );
 }

@@ -8,9 +8,9 @@ dataSources:
     name: TrustPool
     network: celo
     source:
-      address: "0x559Fc954873E175Ad8e0334cad4b80CB6D9f1A99"
+      address: "0xe7891De4005Ac5A2B6Cf3982C27c75A5B0F9b0FC"
       abi: TrustPool
-      startBlock: 28811137
+      startBlock: 56212000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

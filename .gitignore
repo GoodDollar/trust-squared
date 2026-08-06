@@ -49,3 +49,6 @@ package-lock.json
 packages/*/yarn.lock
 packages/*/package-lock.json
 .vscode/settings.json
+# Build artifacts, not source
+*.tsbuildinfo
+.yarn/install-state.gz
